@@ -1,0 +1,86 @@
+---
+title: "Batlights"
+author: "Jade with May help"
+date: "12/8/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+install.packages("tidyverse")
+library(dplyr)
+library(ggplot2)
+```
+
+
+```{r}
+data<- inner_join(redo_, idtry2, by= 'IN FILE')
+data <- select(data, -INDIR.x, -FOLDER.x, -CHANNEL, -OFFSET, -HOUR.x, -'DATE-12.x', -INPATHMD5,
+               -INDIR.y, -OUTDIR, -FOLDER.y, 
+               -DATE.y, -TIME.y, -HOUR.y, -'DATE-12.y', -'HOUR-12.y')
+data <- select(data, -'TIME-12.x', -'HOUR-12.x', -'MANUAL ID.x', -FILES, -'MANUAL ID.y')
+d<- data[! (data$Species=="NOISE"),]
+d<- d[! (d$Species=="NOCLASS"),]
+d<- d%>% relocate(`AUTO ID*`, DURATION.x)
+d[d$'MATCH RATIO' <= c(0.6), 1] <- "NoID"
+d<- d%>% relocate(Species, `AUTO ID*`)
+d[d$'MATCH RATIO' <= c(0.6), 1] <- "NoID"
+d<- d%>% relocate(WeekDay, Species)
+d[d$WeekDay == c('Fr'), 1] <- "6"
+d[d$WeekDay == c('Sa'), 1] <- "7"
+d[d$WeekDay == c('Th'), 1] <- "5"
+d[d$WeekDay == c('We'), 1] <- "4"
+d[d$WeekDay == c('Tu'), 1] <- "3"
+d[d$WeekDay == c('Mo'), 1] <- "2"
+d[d$WeekDay == c('Su'), 1] <- "1"
+d<- d %>% mutate(region = 'Site#')
+d<- d %>% relocate(region, WeekDay)
+d[d$'Site#' == c('1'), 1] <- "C"
+d[d$'Site#' == c('3'), 1] <- "C"
+d[d$'Site#' == c('6'), 1] <- "S"
+d[d$'Site#' == c('5'), 1] <- "S"
+d[d$'Site#' == c('2'), 1] <- "N"
+d[d$'Site#' == c('4'), 1] <- "N"
+d<- d %>% mutate(binarylight = LightAvg)
+d<- d %>% relocate(binarylight, region)
+d[d$binarylight > c('0'), 1] <- 1
+d<- d %>% rename(autoid = `AUTO ID*`, site = `Site#`, date = DATE.x, minaftersun = Minutesaftersunset,
+                 weekday = WeekDay, matchratio = `MATCH RATIO`, infile = 'IN FILE', species = Species)
+d<- d %>% relocate(infile, autoid, matchratio, site, region, date, Session, minaftersun, TimeClass, weekday, binarylight,
+                   LightAvg, AvgTemp, AvgWindSpeed, AvgHumidity, MoonPhase, species)
+d2<- d[! (d$autoid== "NoID"),]
+allbats <- d
+batsbyspecies <- d2
+d<- d %>% mutate(sitename = autoid)
+d<- d %>% relocate(sitename, autoid)
+d[d$site == c('1'), 1] <- "E. Ney Museum"
+d[d$site == c('2'), 1] <- "Epoch Coffee"
+d[d$site == c('3'), 1] <- "Shipe Park Tennis Court"
+d[d$site == c('4'), 1] <- "UT Intramural Fields"
+d[d$site == c('5'), 1] <- "Texas State Capitol"
+d[d$site == c('6'), 1] <- "UT South Mall"
+d<- d %>% relocate(species, sitename)
+d[d$autoid == c('ANTPAL'), 1] <- "A. pallidus"
+d[d$autoid == c('CORTOW'), 1] <- "C. townsendii"
+d[d$autoid == c('EUMPER'), 1] <- "E. perotis"
+d[d$autoid == c('LASCIN'), 1] <- "L. cinereus"
+d[d$autoid == c('LASEGA'), 1] <- "L. ega"
+d[d$autoid == c('LASINT'), 1] <- "L. intermedius"
+d[d$autoid == c('LASNOC'), 1] <- "L. noctivagans"
+d[d$autoid == c('TADBRA'), 1] <- "T. brasiliensis"
+d<- d %>% relocate(MoonPhase, infile)
+d[d$MoonPhase == c('WanGib'), 1] <- "Waning Gibbous"
+d[d$MoonPhase == c('WanCres'), 1] <- "Waning Crescent"
+d[d$MoonPhase == c('WaxGib'), 1] <- "Waxing Gibbous"
+d[d$MoonPhase == c('WaxCres'), 1] <- "Waxing Crescent"
+d<- d %>% relocate(infile, autoid, matchratio, site, region, date, Session, trial, minaftersun, weekday, binarylight,
+                   LightAvg, AvgTemp, AvgWindSpeed, AvgHumidity, MoonPhase, sitename, species)
+d<- d[! (d$Session== "86"),]
+d2<- d[! (d$autoid== "NoID"),]
+allbats <- d
+batsbyspecies <- d2
+```
+
